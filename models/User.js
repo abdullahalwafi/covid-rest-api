@@ -2,6 +2,9 @@
 const db = require("../config/database");
 // import bcrypt
 const bcrypt = require("bcrypt");
+// jwt
+const jwt = require("jsonwebtoken");
+
 // membuat class User
 class User {
   /**
@@ -34,6 +37,44 @@ class User {
               resolve(values);
             }
           });
+        }
+      });
+    });
+  }
+  static Login(email, password) {
+    return new Promise((resolve, reject) => {
+      const query = "SELECT * FROM users WHERE email = ?";
+      db.query(query, [email], (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          if (results.length === 0) {
+            reject(email + " tidak ditemukan");
+          } else {
+            const hashedPassword = results[0].password;
+            bcrypt.compare(password, hashedPassword, (err, result) => {
+              if (err) {
+                reject(err);
+              } else {
+                if (result) {
+                  // User authentication successful, generate JWT
+                  const user = {
+                    id: results[0].id,
+                    name: results[0].name,
+                    email: results[0].email,
+                  };
+
+                  const token = jwt.sign(user, "your-secret-key", {
+                    expiresIn: "1h",
+                  });
+
+                  resolve({ user, token });
+                } else {
+                  reject("Password salah");
+                }
+              }
+            });
+          }
         }
       });
     });

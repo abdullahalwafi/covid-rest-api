@@ -19,6 +19,21 @@ class UserController {
     }
   }
 
+  // login dan mendapatkan token
+  async Login(req, res) {
+    try {
+      const { email, password } = req.body;
+      const result = await User.Login(email, password);
+      const data = {
+        message: "Login User",
+        data: result,
+      };
+
+      res.json(data);
+    } catch (error) {
+      res.json(error);
+    }
+  }
 }
 
 // membuat object UserController
